@@ -22,6 +22,18 @@ No additional hops. No background jobs. No queues. No external storage.
 
 ---
 
+## Architecture
+
+Qadam uses a two-stage server-side AI pipeline. All Gemini calls are made from Next.js API routes — never from the browser. The browser holds all pipeline state in React Context and localStorage; no server-side state is required.
+
+**Stage 1 — Document Analysis (`/api/analyze`):** Receives the base64-encoded document image, calls Gemini with the Stage 1 prompt, validates the response as `DocumentAnalysis`, and returns structured JSON to the client.
+
+**Stage 2 — Eligibility Reasoning (`/api/plan`):** Receives the `DocumentAnalysis` object and the user's answers, calls Gemini with the Stage 2 prompt, validates the response as `ActionPlan`, and returns structured JSON to the client.
+
+Both routes implement a 9-second timeout via `Promise.race`, return `{ "error": string }` on all failure paths, and never expose the API key or raw error internals in responses.
+
+---
+
 ## Project Structure
 
 ```
@@ -75,7 +87,7 @@ The page is wrapped in a centered, max-width container (`max-w-2xl mx-auto px-4`
 
 ---
 
-## Component Design
+## Components and Interfaces
 
 ### UploadStep
 
@@ -216,7 +228,7 @@ Each load function wraps `JSON.parse` in a try/catch and returns `null` on failu
 
 ---
 
-## TypeScript Types (lib/types.ts)
+## Data Models
 
 ### DocumentAnalysis
 
@@ -450,7 +462,10 @@ The prompt must include all of the following, in substance:
 
 ---
 
-## Evidence Representation
+## Correctness Properties
+
+### Property 1: Evidence Representation
+**Validates:** Requirements 7.1, 7.2, 7.3, 7.4, 7.5
 
 Evidence is a `string | null` field on every extracted item. The design guarantees the following:
 
