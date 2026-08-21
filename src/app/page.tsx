@@ -6,8 +6,7 @@ import UploadStep from "@/components/UploadStep";
 import SummaryStep from "@/components/SummaryStep";
 import QuestionsStep from "@/components/QuestionsStep";
 import PlanStep from "@/components/PlanStep";
-import { MOCK_ACTION_PLAN } from "@/lib/mockData";
-import { isDocumentAnalysis } from "@/lib/validate";
+import { isDocumentAnalysis, isActionPlan } from "@/lib/validate";
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
@@ -170,9 +169,32 @@ function PipelineShell() {
           analysis={documentAnalysis}
           onSubmit={async (answers) => {
             setUserAnswers(answers);
-            // TODO (Task 9): POST to /api/plan and call setActionPlan(result)
-            // For now, load mock data to demonstrate the full pipeline flow
-            setActionPlan(MOCK_ACTION_PLAN);
+            const res = await fetch("/api/plan", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                documentAnalysis,
+                userAnswers: answers,
+              }),
+            });
+            const data: unknown = await res.json();
+            if (!res.ok) {
+              const msg =
+                typeof data === "object" &&
+                data !== null &&
+                "error" in data &&
+                typeof (data as { error: unknown }).error === "string"
+                  ? (data as { error: string }).error
+                  : "Something went wrong. Please try again.";
+              throw new Error(msg);
+            }
+            if (isActionPlan(data)) {
+              setActionPlan(data);
+            } else {
+              throw new Error(
+                "AI returned an unrecognized response structure. Please try again."
+              );
+            }
           }}
           onBack={() => goTo("summary")}
         />
