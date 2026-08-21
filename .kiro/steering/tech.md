@@ -52,7 +52,7 @@ Do not add additional AI calls for sub-tasks, rephrasing, or UI polish. Every AI
 - The API key must never be exposed to the client
 - Store the API key in `.env.local` as `GEMINI_API_KEY`
 - Use the `@google/generative-ai` SDK
-- Use `gemini-2.0-flash` as the default model (fast, free-tier compatible, multimodal)
+- Use `gemini-3.6-flash` as the default model (fast, free-tier compatible, multimodal)
 - Request structured JSON output using Gemini's `responseMimeType: "application/json"` and `responseSchema` where supported, or instruct JSON output via the prompt with explicit schema
 - Always validate the structure of Gemini's response before using it — never assume the shape is correct
 

@@ -5,7 +5,7 @@
  * components. GEMINI_API_KEY is read here and never forwarded to the browser.
  *
  * Both exported functions return `unknown` so the API route is responsible
- * for JSON parsing and schema validation (Tasks 6 & 7).
+ * for JSON parsing and schema validation (Task 7).
  *
  * A 9-second Promise.race timeout is applied to every call. On timeout the
  * promise rejects with { code: "TIMEOUT" } so the route can return HTTP 504.
@@ -13,13 +13,14 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { DocumentAnalysis } from "@/lib/types";
+import { buildStage1Prompt, buildStage2Prompt } from "@/lib/prompts";
 
 // ─── Client initialisation ────────────────────────────────────────────────────
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
+  model: "gemini-3.6-flash",
   generationConfig: {
     responseMimeType: "application/json",
   },
@@ -49,10 +50,7 @@ export async function analyzeDocument(
   imageBase64: string,
   mimeType: string
 ): Promise<unknown> {
-  // Task 6 will replace this with buildStage1Prompt()
-  const prompt =
-    "Analyze this document image and return a JSON object. " +
-    "Placeholder — full prompt added in Task 6.";
+  const prompt = buildStage1Prompt();
 
   const result = await withTimeout(
     model.generateContent([
@@ -84,14 +82,7 @@ export async function generatePlan(
   analysis: DocumentAnalysis,
   answers: Record<string, string>
 ): Promise<unknown> {
-  // Task 6 will replace this with buildStage2Prompt(analysis, answers)
-  const prompt =
-    "Given the following document analysis and user answers, produce an action plan JSON. " +
-    "Document analysis: " +
-    JSON.stringify(analysis) +
-    "\nUser answers: " +
-    JSON.stringify(answers) +
-    "\nPlaceholder — full prompt added in Task 6.";
+  const prompt = buildStage2Prompt(analysis, answers);
 
   const result = await withTimeout(model.generateContent(prompt));
 
