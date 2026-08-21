@@ -119,7 +119,7 @@ export default function PlanStep({ plan, analysis, onReset }: PlanStepProps) {
             items={plan.unmetCriteria.map((c) => ({ text: c.text, sub: c.reason, evidence: c.evidence }))}
           />
           <CriteriaSection
-            heading="Could not be determined"
+            heading="Could Not Be Determined"
             headingColor="text-amber-700"
             bgColor="bg-amber-50"
             borderColor="border-amber-200"

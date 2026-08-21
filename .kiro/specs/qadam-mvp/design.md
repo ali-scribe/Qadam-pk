@@ -30,7 +30,7 @@ Qadam uses a two-stage server-side AI pipeline. All Gemini calls are made from N
 
 **Stage 2 — Eligibility Reasoning (`/api/plan`):** Receives the `DocumentAnalysis` object and the user's answers, calls Gemini with the Stage 2 prompt, validates the response as `ActionPlan`, and returns structured JSON to the client.
 
-Both routes implement a 9-second timeout via `Promise.race`, return `{ "error": string }` on all failure paths, and never expose the API key or raw error internals in responses.
+Both routes implement a 15-second timeout via `Promise.race`, return `{ "error": string }` on all failure paths, and never expose the API key or raw error internals in responses.
 
 ---
 
@@ -373,7 +373,7 @@ If validation fails, the route returns HTTP 500 with `{ "error": "AI returned an
 
 **Flow:**
 1. Validate that `imageBase64` is a non-empty string and `mimeType` is one of the accepted types. Return HTTP 400 if not.
-2. Call `gemini.analyzeDocument(imageBase64, mimeType)` with a 9-second timeout.
+2. Call `gemini.analyzeDocument(imageBase64, mimeType)` with a 15-second timeout.
 3. Parse the response as JSON. Return HTTP 500 if parse fails.
 4. Run `isDocumentAnalysis()` validation. Return HTTP 500 if invalid.
 5. Normalize missing `evidence` keys to `null` on all array items.
@@ -395,7 +395,7 @@ If validation fails, the route returns HTTP 500 with `{ "error": "AI returned an
 **Flow:**
 1. Validate that `documentAnalysis` conforms to `DocumentAnalysis` type. Return HTTP 400 if not.
 2. Validate that `userAnswers` is a non-null object. Return HTTP 400 if not.
-3. Call `gemini.generatePlan(documentAnalysis, userAnswers)` with a 9-second timeout.
+3. Call `gemini.generatePlan(documentAnalysis, userAnswers)` with a 15-second timeout.
 4. Parse the response as JSON. Return HTTP 500 if parse fails.
 5. Run `isActionPlan()` validation. Return HTTP 500 if invalid.
 6. Return HTTP 200 with the validated `ActionPlan` object.
@@ -430,7 +430,7 @@ const model = genAI.getGenerativeModel({
 
 Both return `unknown`. The API route is responsible for parsing and validating the result. Neither function throws a user-facing error — they let the raw Gemini SDK error propagate to the route, which catches it.
 
-The 9-second timeout is implemented by wrapping the Gemini call in a `Promise.race` against a `setTimeout` that rejects with a timeout signal. The route catches the timeout signal and returns HTTP 504.
+The 15-second timeout is implemented by wrapping the Gemini call in a `Promise.race` against a `setTimeout` that rejects with a timeout signal. The route catches the timeout signal and returns HTTP 504.
 
 ---
 
@@ -588,4 +588,4 @@ No other environment variables are required.
 
 The two API routes deploy as Vercel Serverless Functions. They are stateless — no file system writes, no shared memory between invocations. Each request is independent.
 
-The Gemini calls target a 9-second client-side timeout, leaving 1 second of margin within Vercel Hobby's 10-second function limit. If latency exceeds this in practice, the first mitigation is reducing the image size on the client before sending, not increasing the timeout.
+The Gemini calls target a 15-second application timeout via `Promise.race`. Vercel Hobby functions now support a configurable maximum duration of up to 60 seconds (increased from the original 10-second limit), so the 15-second timeout has comfortable headroom. If calls still time out, reduce image size or prompt verbosity before increasing the timeout further.

@@ -7,7 +7,7 @@
  * Both exported functions return `unknown` so the API route is responsible
  * for JSON parsing and schema validation (Task 7).
  *
- * A 9-second Promise.race timeout is applied to every call. On timeout the
+ * A 15-second Promise.race timeout is applied to every call. On timeout the
  * promise rejects with { code: "TIMEOUT" } so the route can return HTTP 504.
  */
 
@@ -28,7 +28,7 @@ const model = genAI.getGenerativeModel({
 
 // ─── Timeout helper ───────────────────────────────────────────────────────────
 
-const TIMEOUT_MS = 9_000;
+const TIMEOUT_MS = 15_000;
 
 function withTimeout<T>(promise: Promise<T>): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
