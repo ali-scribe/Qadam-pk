@@ -102,9 +102,92 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
     e.preventDefault();
   }
 
+  // ── Compression (Task 4) ─────────────────────────────────────────────────
+  // Files ≤ 1 MB: read directly with FileReader — no quality loss.
+  // Files > 1 MB: draw to canvas and reduce JPEG quality in steps of 0.1
+  //               until the blob is ≤ 1 MB or quality reaches 0.1.
+  // Returns the raw base64 string (no data-URL prefix) and the output mimeType.
+
+  function readAsBase64(blob: Blob): Promise<{ base64: string; mimeType: string }> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        // Strip "data:<mime>;base64," prefix — keep only the base64 payload
+        const comma = dataUrl.indexOf(",");
+        const base64 = dataUrl.slice(comma + 1);
+        const mimeType = dataUrl.slice(5, comma).split(";")[0];
+        resolve({ base64, mimeType });
+      };
+      reader.onerror = () => reject(new Error("Failed to read file."));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function compressToBase64(
+    file: File
+  ): Promise<{ base64: string; mimeType: string }> {
+    const TARGET = 1 * 1024 * 1024; // 1 MB
+
+    // 4.1 — already within limit: read as-is
+    if (file.size <= TARGET) {
+      return readAsBase64(file);
+    }
+
+    // 4.1 — over limit: compress via Canvas API
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas context unavailable."));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+
+        let quality = 0.9;
+
+        const tryCompress = () => {
+          // 4.1 — canvas.toBlob with iteratively reduced quality
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error("Image compression failed."));
+                return;
+              }
+              if (blob.size <= TARGET || quality <= 0.1) {
+                // 4.2 — mimeType will be "image/jpeg" from canvas
+                readAsBase64(blob).then(resolve).catch(reject);
+              } else {
+                quality = Math.round((quality - 0.1) * 10) / 10;
+                tryCompress();
+              }
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+
+        tryCompress();
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Could not load the image for compression."));
+      };
+
+      img.src = objectUrl;
+    });
+  }
+
   // ── Submit ───────────────────────────────────────────────────────────────
-  // Task 3: passes placeholder arguments to onAnalyze.
-  // Real base64 encoding + compression added in Task 4.
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -117,11 +200,25 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
 
     setLoading(true);
     try {
-      // Placeholder args — Task 4 replaces these with real base64 + mimeType
-      await onAnalyze("", selectedFile.type);
+      // 4.1 / 4.2 — compress (if needed) and extract clean base64 + mimeType
+      const { base64, mimeType } = await compressToBase64(selectedFile);
+
+      // 4.3 — dev-only confirmation that encoded payload is within limit
+      if (process.env.NODE_ENV === "development") {
+        const approxBytes = Math.ceil((base64.length * 3) / 4);
+        console.log(
+          `[Qadam] compressed payload: ${(approxBytes / 1024).toFixed(1)} KB` +
+            ` (${mimeType})`
+        );
+      }
+
+      // 4.2 — pass real base64 (no data-URL prefix) and mimeType to onAnalyze
+      await onAnalyze(base64, mimeType);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
       setApiError(message);
     } finally {
       setLoading(false);
