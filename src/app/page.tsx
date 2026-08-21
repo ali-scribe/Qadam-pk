@@ -79,10 +79,12 @@ function PipelineShell() {
         </section>
 
         {/* Upload form */}
+        {/* onAnalyze is a no-op stub for Task 3.
+            Task 4 adds compression; Task 5 connects the real /api/analyze route.
+            Mock pipeline advance kept below for manual flow testing. */}
         <UploadStep
           onAnalyze={async (_base64, _mimeType) => {
-            // TODO (Task 5): POST to /api/analyze and call setDocumentAnalysis(result)
-            // For now, load mock data to demonstrate the full pipeline flow
+            // Stub — replace in Task 5 with real API call
             setDocumentAnalysis(MOCK_DOCUMENT_ANALYSIS);
           }}
         />
