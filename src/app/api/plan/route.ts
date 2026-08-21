@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generatePlan } from "@/lib/gemini";
 import type { DocumentAnalysis } from "@/lib/types";
+import { isActionPlan } from "@/lib/validate";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── 1. Parse and validate input ──────────────────────────────────────────
@@ -49,7 +50,45 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       documentAnalysis as DocumentAnalysis,
       userAnswers as Record<string, string>
     );
-    // Task 7 adds isActionPlan() validation before returning
+    // 7.4 — validate ActionPlan shape
+    if (!isActionPlan(result)) {
+      return NextResponse.json(
+        { error: "AI returned an unrecognized response structure. Please try again." },
+        { status: 500 }
+      );
+    }
+    // 7.4 — Stage 2 rule: no criterion may appear in satisfiedCriteria
+    // unless the user actually provided an answer for it. We check by
+    // comparing satisfiedCriteria text against the questionsForUser ids
+    // in the incoming documentAnalysis. Any satisfied criterion whose
+    // corresponding question id has no answer in userAnswers is a violation.
+    const answers = userAnswers as Record<string, string>;
+    const analysis = documentAnalysis as DocumentAnalysis;
+    const questionIds = new Set(
+      analysis.questionsForUser?.map((q: { id: string }) => q.id) ?? []
+    );
+    for (const sc of result.satisfiedCriteria) {
+      // Find the question whose relevantCriterionId matches a criterion with
+      // this text. If the question exists and has no answer, reject.
+      const relatedQuestion = analysis.questionsForUser?.find(
+        (q: { relevantCriterionId: string; id: string }) =>
+          questionIds.has(q.id) &&
+          analysis.eligibilityCriteria?.some(
+            (c: { id: string; description: string }) =>
+              c.id === q.relevantCriterionId &&
+              c.description === sc.text
+          )
+      );
+      if (relatedQuestion) {
+        const answer = answers[relatedQuestion.id];
+        if (answer === undefined || answer === null || answer === "") {
+          return NextResponse.json(
+            { error: "AI returned an unrecognized response structure. Please try again." },
+            { status: 500 }
+          );
+        }
+      }
+    }
     return NextResponse.json(result, { status: 200 });
   } catch (err: unknown) {
     // Timeout

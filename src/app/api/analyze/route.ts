@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { analyzeDocument } from "@/lib/gemini";
+import { isDocumentAnalysis } from "@/lib/validate";
 
 const ACCEPTED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -54,7 +55,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── 2. Call Gemini ───────────────────────────────────────────────────────
   try {
     const result = await analyzeDocument(imageBase64, mimeType);
-    // Task 7 adds isDocumentAnalysis() validation before returning
+    // 7.3 — validate shape before returning to client
+    if (!isDocumentAnalysis(result)) {
+      return NextResponse.json(
+        { error: "AI returned an unrecognized response structure. Please try again." },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(result, { status: 200 });
   } catch (err: unknown) {
     // Timeout

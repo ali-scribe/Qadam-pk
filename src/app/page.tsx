@@ -6,7 +6,8 @@ import UploadStep from "@/components/UploadStep";
 import SummaryStep from "@/components/SummaryStep";
 import QuestionsStep from "@/components/QuestionsStep";
 import PlanStep from "@/components/PlanStep";
-import { MOCK_DOCUMENT_ANALYSIS, MOCK_ACTION_PLAN } from "@/lib/mockData";
+import { MOCK_ACTION_PLAN } from "@/lib/mockData";
+import { isDocumentAnalysis } from "@/lib/validate";
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
@@ -79,13 +80,31 @@ function PipelineShell() {
         </section>
 
         {/* Upload form */}
-        {/* onAnalyze is a no-op stub for Task 3.
-            Task 4 adds compression; Task 5 connects the real /api/analyze route.
-            Mock pipeline advance kept below for manual flow testing. */}
         <UploadStep
-          onAnalyze={async (_base64, _mimeType) => {
-            // Stub — replace in Task 5 with real API call
-            setDocumentAnalysis(MOCK_DOCUMENT_ANALYSIS);
+          onAnalyze={async (base64, mimeType) => {
+            const res = await fetch("/api/analyze", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ imageBase64: base64, mimeType }),
+            });
+            const data: unknown = await res.json();
+            if (!res.ok) {
+              const msg =
+                typeof data === "object" &&
+                data !== null &&
+                "error" in data &&
+                typeof (data as { error: unknown }).error === "string"
+                  ? (data as { error: string }).error
+                  : "Something went wrong. Please try again.";
+              throw new Error(msg);
+            }
+            if (isDocumentAnalysis(data)) {
+              setDocumentAnalysis(data);
+            } else {
+              throw new Error(
+                "AI returned an unrecognized response structure. Please try again."
+              );
+            }
           }}
         />
 
