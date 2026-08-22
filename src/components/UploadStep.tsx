@@ -20,15 +20,15 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 interface UploadStepProps {
   /**
    * Called when the user submits a valid file.
-   * Task 3: receives placeholder empty strings — real base64 + mimeType
-   * wired in Task 4 (compression) and Task 5 (API call).
    */
   onAnalyze: (base64: string, mimeType: string) => Promise<void>;
+  /** Called when the user clicks one of the built-in example buttons. */
+  onLoadExample: (type: "scholarship" | "domicile") => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function UploadStep({ onAnalyze }: UploadStepProps) {
+export default function UploadStep({ onAnalyze, onLoadExample }: UploadStepProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [selectedFile, setSelectedFile]           = useState<File | null>(null);
@@ -382,6 +382,29 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
       <p className="mt-6 text-center text-sm text-gray-400">
         Qadam is not a legal advisor. Always verify with the issuing authority.
       </p>
+
+      {/* ── Try an example ── */}
+      <div className="mt-8">
+        <p className="mb-3 text-center text-sm font-medium text-gray-500">
+          No document handy? Try a built-in example:
+        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <button
+            type="button"
+            onClick={() => onLoadExample("scholarship")}
+            className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors min-h-[44px]"
+          >
+            🎓 Try a scholarship example
+          </button>
+          <button
+            type="button"
+            onClick={() => onLoadExample("domicile")}
+            className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 hover:border-emerald-400 hover:text-emerald-700 transition-colors min-h-[44px]"
+          >
+            🏛️ Try a government service example
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -23,6 +23,13 @@ interface PipelineState {
   documentAnalysis: DocumentAnalysis | null;
   userAnswers: Record<string, string> | null;
   actionPlan: ActionPlan | null;
+  /** True when the current session was loaded from a built-in example.
+   *  Example sessions are NOT persisted to localStorage. */
+  isExample: boolean;
+  /** Pre-baked answers for the current example, or null in real sessions. */
+  exampleAnswers: Record<string, string> | null;
+  /** Pre-baked plan for the current example, or null in real sessions. */
+  examplePlan: ActionPlan | null;
 }
 
 type PipelineAction =
@@ -31,13 +38,24 @@ type PipelineAction =
   | { type: "SET_PLAN"; payload: ActionPlan }
   | { type: "GO_TO"; payload: PipelineStage }
   | { type: "RESET" }
-  | { type: "RESTORE"; payload: PipelineState };
+  | { type: "RESTORE"; payload: PipelineState }
+  | {
+      type: "LOAD_EXAMPLE";
+      payload: {
+        analysis: DocumentAnalysis;
+        answers: Record<string, string>;
+        plan: ActionPlan;
+      };
+    };
 
 const INITIAL_STATE: PipelineState = {
   stage: "upload",
   documentAnalysis: null,
   userAnswers: null,
   actionPlan: null,
+  isExample: false,
+  exampleAnswers: null,
+  examplePlan: null,
 };
 
 function reducer(state: PipelineState, action: PipelineAction): PipelineState {
@@ -54,6 +72,16 @@ function reducer(state: PipelineState, action: PipelineAction): PipelineState {
       return INITIAL_STATE;
     case "RESTORE":
       return action.payload;
+    case "LOAD_EXAMPLE":
+      // Example sessions go straight to 'summary'; no localStorage write.
+      return {
+        ...INITIAL_STATE,
+        isExample: true,
+        documentAnalysis: action.payload.analysis,
+        exampleAnswers: action.payload.answers,
+        examplePlan: action.payload.plan,
+        stage: "summary",
+      };
     default:
       return state;
   }
@@ -67,6 +95,11 @@ export interface PipelineContextValue extends PipelineState {
   setActionPlan: (plan: ActionPlan) => void;
   goTo: (stage: PipelineStage) => void;
   reset: () => void;
+  loadExample: (
+    analysis: DocumentAnalysis,
+    answers: Record<string, string>,
+    plan: ActionPlan
+  ) => void;
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────
@@ -78,7 +111,8 @@ export const PipelineContext = createContext<PipelineContextValue | null>(null);
 export function PipelineProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
 
-  // Restore from localStorage on mount
+  // Restore from localStorage on mount (real sessions only — example sessions
+  // are in-memory and should not survive a refresh)
   useEffect(() => {
     try {
       const analysis = loadDocumentAnalysis();
@@ -87,15 +121,31 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
       if (analysis && plan) {
         dispatch({
           type: "RESTORE",
-          payload: { stage: "plan", documentAnalysis: analysis, userAnswers: null, actionPlan: plan },
+          payload: {
+            stage: "plan",
+            documentAnalysis: analysis,
+            userAnswers: null,
+            actionPlan: plan,
+            isExample: false,
+            exampleAnswers: null,
+            examplePlan: null,
+          },
         });
       } else if (analysis) {
         dispatch({
           type: "RESTORE",
-          payload: { stage: "questions", documentAnalysis: analysis, userAnswers: null, actionPlan: null },
+          payload: {
+            stage: "questions",
+            documentAnalysis: analysis,
+            userAnswers: null,
+            actionPlan: null,
+            isExample: false,
+            exampleAnswers: null,
+            examplePlan: null,
+          },
         });
       }
-      // else: start at 'upload' (initial state)
+      // else: start at 'upload' (INITIAL_STATE)
     } catch {
       // localStorage read failure — clear and start fresh
       clearAll();
@@ -103,16 +153,17 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setDocumentAnalysis = useCallback((result: DocumentAnalysis) => {
+    // Only persist real analyses — not example sessions
     saveDocumentAnalysis(result);
     dispatch({ type: "SET_ANALYSIS", payload: result });
   }, []);
 
   const setUserAnswers = useCallback((answers: Record<string, string>) => {
-    // User answers are not persisted — in-memory only
     dispatch({ type: "SET_ANSWERS", payload: answers });
   }, []);
 
   const setActionPlan = useCallback((plan: ActionPlan) => {
+    // Only persist real plans — not example sessions
     saveActionPlan(plan);
     dispatch({ type: "SET_PLAN", payload: plan });
   }, []);
@@ -126,9 +177,30 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "RESET" });
   }, []);
 
+  const loadExample = useCallback(
+    (
+      analysis: DocumentAnalysis,
+      answers: Record<string, string>,
+      plan: ActionPlan
+    ) => {
+      // Intentionally does NOT call saveDocumentAnalysis or saveActionPlan —
+      // example sessions must not persist across a page refresh.
+      dispatch({ type: "LOAD_EXAMPLE", payload: { analysis, answers, plan } });
+    },
+    []
+  );
+
   return (
     <PipelineContext.Provider
-      value={{ ...state, setDocumentAnalysis, setUserAnswers, setActionPlan, goTo, reset }}
+      value={{
+        ...state,
+        setDocumentAnalysis,
+        setUserAnswers,
+        setActionPlan,
+        goTo,
+        reset,
+        loadExample,
+      }}
     >
       {children}
     </PipelineContext.Provider>

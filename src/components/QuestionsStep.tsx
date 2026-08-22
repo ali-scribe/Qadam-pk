@@ -10,16 +10,21 @@ interface QuestionsStepProps {
   /** Called with answers map on valid submission. Throws on API error. */
   onSubmit: (answers: Record<string, string>) => Promise<void>;
   onBack: () => void;
+  /** When provided (example sessions), pre-fills all answer fields. */
+  initialAnswers?: Record<string, string>;
 }
 
 export default function QuestionsStep({
   analysis,
   onSubmit,
   onBack,
+  initialAnswers,
 }: QuestionsStepProps) {
   const questions = analysis.questionsForUser;
 
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, string>>(
+    initialAnswers ?? {}
+  );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);

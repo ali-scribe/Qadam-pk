@@ -7,6 +7,16 @@ import SummaryStep from "@/components/SummaryStep";
 import QuestionsStep from "@/components/QuestionsStep";
 import PlanStep from "@/components/PlanStep";
 import { isDocumentAnalysis, isActionPlan } from "@/lib/validate";
+import {
+  SCHOLARSHIP_EXAMPLE_ANALYSIS,
+  SCHOLARSHIP_EXAMPLE_ANSWERS,
+  SCHOLARSHIP_EXAMPLE_PLAN,
+} from "@/lib/scholarshipExample";
+import {
+  DOMICILE_EXAMPLE_ANALYSIS,
+  DOMICILE_EXAMPLE_ANSWERS,
+  DOMICILE_EXAMPLE_PLAN,
+} from "@/lib/domicileExample";
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
@@ -46,11 +56,15 @@ function PipelineShell() {
     stage,
     documentAnalysis,
     actionPlan,
+    isExample,
+    exampleAnswers,
+    examplePlan,
     setDocumentAnalysis,
     setUserAnswers,
     setActionPlan,
     goTo,
     reset,
+    loadExample,
   } = usePipeline();
 
   // ── Stage: upload ──────────────────────────────────────────────────────────
@@ -102,6 +116,21 @@ function PipelineShell() {
             } else {
               throw new Error(
                 "AI returned an unrecognized response structure. Please try again."
+              );
+            }
+          }}
+          onLoadExample={(type) => {
+            if (type === "scholarship") {
+              loadExample(
+                SCHOLARSHIP_EXAMPLE_ANALYSIS,
+                SCHOLARSHIP_EXAMPLE_ANSWERS,
+                SCHOLARSHIP_EXAMPLE_PLAN
+              );
+            } else {
+              loadExample(
+                DOMICILE_EXAMPLE_ANALYSIS,
+                DOMICILE_EXAMPLE_ANSWERS,
+                DOMICILE_EXAMPLE_PLAN
               );
             }
           }}
@@ -167,8 +196,18 @@ function PipelineShell() {
         <Header />
         <QuestionsStep
           analysis={documentAnalysis}
+          initialAnswers={isExample && exampleAnswers ? exampleAnswers : undefined}
           onSubmit={async (answers) => {
             setUserAnswers(answers);
+
+            if (isExample && examplePlan) {
+              // Example session: skip the API call, use the pre-baked plan.
+              // Do NOT call setActionPlan — that writes to localStorage.
+              // examplePlan is already in context state; just advance stage.
+              goTo("plan");
+              return;
+            }
+
             const res = await fetch("/api/plan", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -205,13 +244,16 @@ function PipelineShell() {
   // ── Stage: plan ────────────────────────────────────────────────────────────
 
   if (stage === "plan") {
-    if (!actionPlan || !documentAnalysis) { reset(); return null; }
+    // For real sessions, actionPlan is set by setActionPlan.
+    // For example sessions, we use examplePlan (not persisted).
+    const planToRender = actionPlan ?? examplePlan;
+    if (!planToRender || !documentAnalysis) { reset(); return null; }
 
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <PlanStep
-          plan={actionPlan}
+          plan={planToRender}
           analysis={documentAnalysis}
           onReset={reset}
         />
