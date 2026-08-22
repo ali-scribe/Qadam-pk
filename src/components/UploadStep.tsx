@@ -351,7 +351,7 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
           {/* Loading state */}
           {loading && (
             <div className="flex justify-center">
-              <LoadingSpinner label="Analysing your document…" />
+              <LoadingSpinner label="Analyzing your document..." />
             </div>
           )}
 
@@ -361,7 +361,7 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
             disabled={loading || !selectedFile}
             className="w-full rounded-lg bg-emerald-600 px-6 py-3 text-base font-semibold text-white hover:bg-emerald-700 transition-colors min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Analysing…" : "Analyse document"}
+            {loading ? "Analyzing..." : "Analyse document"}
           </button>
         </form>
       </div>

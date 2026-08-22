@@ -190,7 +190,7 @@ export default function QuestionsStep({
             )}
             {loading && (
               <div className="mt-4 flex justify-center">
-                <LoadingSpinner label="Generating your action plan…" />
+                <LoadingSpinner label="Generating your action plan..." />
               </div>
             )}
             <div className="mt-6 flex gap-3">
@@ -258,7 +258,7 @@ export default function QuestionsStep({
             {/* Loading — 9.6 */}
             {loading && (
               <div className="flex justify-center">
-                <LoadingSpinner label="Generating your action plan…" />
+                <LoadingSpinner label="Generating your action plan..." />
               </div>
             )}
 

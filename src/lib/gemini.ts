@@ -65,6 +65,9 @@ export async function analyzeDocument(
   );
 
   const text = result.response.text();
+  if (process.env.NODE_ENV === "development") {
+    console.log("[Qadam/analyze] raw Gemini response text:", text.slice(0, 500));
+  }
   return JSON.parse(text) as unknown;
 }
 
@@ -87,5 +90,8 @@ export async function generatePlan(
   const result = await withTimeout(model.generateContent(prompt));
 
   const text = result.response.text();
+  if (process.env.NODE_ENV === "development") {
+    console.log("[Qadam/plan] raw Gemini response text:", text.slice(0, 500));
+  }
   return JSON.parse(text) as unknown;
 }

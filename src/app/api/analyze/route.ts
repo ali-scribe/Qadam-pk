@@ -73,6 +73,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       "code" in err &&
       (err as { code: unknown }).code === "TIMEOUT"
     ) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("[Qadam/analyze] Gemini timeout (15 s exceeded)");
+      }
       return NextResponse.json(
         {
           error:
@@ -84,6 +87,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // JSON parse failure from gemini.ts
     if (err instanceof SyntaxError) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("[Qadam/analyze] JSON parse error:", err.message);
+      }
       return NextResponse.json(
         { error: "The AI returned an unexpected response. Please try again." },
         { status: 500 }
@@ -91,6 +97,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Gemini API error (non-2xx from the upstream API)
+    if (process.env.NODE_ENV === "development") {
+      console.error("[Qadam/analyze] Gemini API error:", err);
+    }
     return NextResponse.json(
       {
         error:
