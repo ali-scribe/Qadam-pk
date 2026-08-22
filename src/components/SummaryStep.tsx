@@ -191,7 +191,7 @@ export default function SummaryStep({
         ) : (
           deadlines.map((dl: Deadline, i: number) => (
             <Row key={i}>
-              <p className="text-xs font-medium text-gray-500">{dl.label}</p>
+              <p className="text-sm font-medium text-gray-500">{dl.label}</p>
               <p className="mt-0.5 text-sm font-semibold text-gray-900">
                 {dl.date ?? <NotStated />}
               </p>
@@ -208,7 +208,7 @@ export default function SummaryStep({
         ) : (
           fees.map((f: Fee, i: number) => (
             <Row key={i}>
-              <p className="text-xs font-medium text-gray-500">{f.label}</p>
+              <p className="text-sm font-medium text-gray-500">{f.label}</p>
               <p className="mt-0.5 text-sm font-semibold text-gray-900">
                 {f.amount ?? <NotStated />}
               </p>

@@ -236,7 +236,7 @@ export default function QuestionsStep({
 
                 {/* Per-field validation error — 9.4 */}
                 {fieldErrors[q.id] && (
-                  <p className="mt-1 text-xs text-red-600" role="alert">
+                  <p className="mt-1 text-sm text-red-600" role="alert">
                     {fieldErrors[q.id]}
                   </p>
                 )}
@@ -285,7 +285,7 @@ export default function QuestionsStep({
         )}
       </div>
 
-      <p className="mt-6 text-center text-xs text-gray-400">
+      <p className="mt-6 text-center text-sm text-gray-400">
         Qadam is not a legal advisor. Always verify with the issuing authority.
       </p>
     </div>

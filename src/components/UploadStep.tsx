@@ -325,7 +325,7 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
           </div>
 
           {/* Supported formats note */}
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-sm text-gray-400 text-center">
             Supported formats: JPEG, PNG, WebP, GIF · Maximum size: 10 MB
           </p>
 
@@ -379,7 +379,7 @@ export default function UploadStep({ onAnalyze }: UploadStepProps) {
         </ul>
       </div>
 
-      <p className="mt-6 text-center text-xs text-gray-400">
+      <p className="mt-6 text-center text-sm text-gray-400">
         Qadam is not a legal advisor. Always verify with the issuing authority.
       </p>
     </div>

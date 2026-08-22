@@ -18,7 +18,7 @@ export default function EvidenceBlock({
       <button
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-900 transition-colors"
+        className="inline-flex items-center gap-1 min-h-[44px] text-xs text-emerald-700 hover:text-emerald-900 transition-colors"
       >
         <svg
           className={`h-3 w-3 transition-transform ${open ? "rotate-90" : ""}`}
@@ -36,7 +36,7 @@ export default function EvidenceBlock({
       </button>
 
       {open && (
-        <blockquote className="mt-2 border-l-4 border-gray-300 bg-gray-50 pl-4 pr-3 py-2 text-sm italic text-gray-600">
+        <blockquote className="mt-2 border-l-4 border-gray-300 bg-gray-50 pl-4 pr-3 py-2 text-sm italic text-gray-600 break-words">
           {evidence}
         </blockquote>
       )}

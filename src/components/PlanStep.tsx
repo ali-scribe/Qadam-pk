@@ -61,12 +61,12 @@ export default function PlanStep({ plan, analysis, onReset }: PlanStepProps) {
         </p>
         {analysis.unknownFields.length > 0 && (
           <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
-            <p className="text-xs font-medium text-gray-500">
+            <p className="text-sm font-medium text-gray-500">
               Could not determine from document
             </p>
             <ul className="mt-1 list-disc list-inside space-y-0.5">
               {analysis.unknownFields.map((f) => (
-                <li key={f} className="text-xs text-gray-500">{f}</li>
+                <li key={f} className="text-sm text-gray-500">{f}</li>
               ))}
             </ul>
           </div>
@@ -87,12 +87,13 @@ export default function PlanStep({ plan, analysis, onReset }: PlanStepProps) {
         <p className={`mt-3 text-sm leading-relaxed ${verdict.text}`}>
           {plan.verdictRationale || "Rationale not provided"}
         </p>
-        {/* Disclaimer — visible without scrolling on initial load */}
-        <p className="mt-4 text-xs text-gray-500 italic">
-          Qadam is not a legal advisor. Always verify your eligibility directly
-          with the issuing authority before submitting.
-        </p>
       </div>
+
+      {/* Disclaimer — standalone below verdict card, always visible at 375px */}
+      <p className="text-sm text-gray-500 italic">
+        Qadam is not a legal advisor. Always verify your eligibility directly
+        with the issuing authority before submitting.
+      </p>
 
       {/* ── Criteria breakdown ── */}
       <section aria-labelledby="criteria-heading">
@@ -297,7 +298,7 @@ function CriteriaSection({
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm text-gray-800">{item.text}</p>
-                  {item.sub && <p className="mt-0.5 text-xs text-gray-500">{item.sub}</p>}
+                  {item.sub && <p className="mt-0.5 text-sm text-gray-500">{item.sub}</p>}
                   {item.evidence && <EvidenceBlock evidence={item.evidence} />}
                 </div>
               </div>
