@@ -107,7 +107,7 @@ Do not add additional AI calls for sub-tasks, rephrasing, or UI polish. Every AI
 - Deploy to Vercel on the free (Hobby) tier
 - Set `GEMINI_API_KEY` as an environment variable in the Vercel project settings
 - API routes run as Vercel Serverless Functions — keep them stateless
-- Vercel Hobby functions support a configurable maximum duration of up to 60 seconds — the 15-second application timeout in `gemini.ts` is well within this. Set `maxDuration` in `next.config.ts` or per-route if you need to raise the Vercel-side ceiling above the default.
+- Vercel Hobby functions with Fluid Compute (the current default) support up to 300 seconds (5 minutes) maximum duration. Both API routes declare `export const maxDuration = 30` to make the ceiling explicit in code rather than relying on platform defaults. The 15-second internal `Promise.race` timeout in `gemini.ts` is well within this.
 - No Docker, no custom server, no database connection strings needed
 
 ## What Not to Do

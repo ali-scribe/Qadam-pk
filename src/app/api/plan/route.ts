@@ -3,6 +3,8 @@ import { generatePlan } from "@/lib/gemini";
 import type { DocumentAnalysis } from "@/lib/types";
 import { isActionPlan } from "@/lib/validate";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── 1. Parse and validate input ──────────────────────────────────────────
   let body: unknown;

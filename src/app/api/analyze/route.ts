@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { analyzeDocument } from "@/lib/gemini";
 import { isDocumentAnalysis } from "@/lib/validate";
 
+export const maxDuration = 30;
+
 const ACCEPTED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",

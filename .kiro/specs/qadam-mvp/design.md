@@ -588,4 +588,4 @@ No other environment variables are required.
 
 The two API routes deploy as Vercel Serverless Functions. They are stateless — no file system writes, no shared memory between invocations. Each request is independent.
 
-The Gemini calls target a 15-second application timeout via `Promise.race`. Vercel Hobby functions now support a configurable maximum duration of up to 60 seconds (increased from the original 10-second limit), so the 15-second timeout has comfortable headroom. If calls still time out, reduce image size or prompt verbosity before increasing the timeout further.
+The Gemini calls target a 15-second application timeout via `Promise.race`. Vercel Hobby functions with Fluid Compute (the current default) support up to 300 seconds (5 minutes) maximum duration, so the 15-second timeout has ample headroom. Both API routes declare `export const maxDuration = 30` to make the ceiling explicit in code rather than relying on platform defaults. If calls still time out, reduce image size or prompt verbosity before increasing the timeout further.
