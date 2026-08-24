@@ -4,8 +4,8 @@
 
 Qadam is a Pakistan-focused AI application that turns confusing institutional documents — scholarship announcements, university notices, government-service instructions — into personalized, evidence-backed action plans.
 
-🔗 **Live app:** _[add your Vercel URL here after deployment]_
-🎥 **Demo video:** _[add your 2–4 minute demo link here]_
+🔗 **Live app:** (https://qadam-pk.vercel.app/)
+🎥 **Demo video:** _[add your 2–4 minute demo link here, once recorded]_
 
 ---
 
@@ -128,7 +128,17 @@ Both API routes declare an explicit `maxDuration` to control server-side executi
 
 ## Screenshots
 
-_[Add screenshots of each pipeline stage here — Upload, Summary, Questions, Plan — before final submission]_
+**Upload** — the entry point, with file upload and "Try an example" options.
+![Upload stage](./screenshots/upload.png)
+
+**Summary** — Stage 1 extraction, with evidence shown inline.
+![Summary stage](./screenshots/summary.png)
+
+**Questions** — dynamic profile questions generated from the document's own criteria.
+![Questions stage](./screenshots/questions.png)
+
+**Plan** — the eligibility verdict and ordered action plan, with evidence.
+![Plan stage](./screenshots/plan.png)
 
 ## Limitations
 
