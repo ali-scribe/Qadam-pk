@@ -145,7 +145,7 @@ Both API routes declare an explicit `maxDuration` to control server-side executi
 - **English-language documents only** for this MVP — Urdu and mixed-language documents may be uploaded, but extraction quality is not guaranteed and output is always in English.
 - **Images only, no PDF** — PDF text-layer extraction was considered but postponed in favor of a smaller, more reliable image-only pipeline for the hackathon timeline.
 - **No persistence beyond the browser session** — clearing browser storage or switching devices loses the current analysis; this is a deliberate MVP trade-off, not an oversight.
-- **AI evidence extraction is not perfect** — Gemini occasionally paraphrases rather than quoting verbatim excerpts. See `demo/known-limitations.md` for specific examples observed during testing.
+- **AI evidence extraction is not perfect** — Although this error has not happened yet, Gemini might paraphrase rather than quoting verbatim excerpts. See `demo/known-limitations.md` for specific examples observed during testing.
 - **Not a substitute for official verification** — Qadam explicitly displays a disclaimer on every action plan recommending the user verify eligibility with the issuing authority directly.
 
 ## Future Improvements
