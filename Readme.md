@@ -129,16 +129,16 @@ Both API routes declare an explicit `maxDuration` to control server-side executi
 ## Screenshots
 
 **Upload** — the entry point, with file upload and "Try an example" options.
-![Upload stage](./screenshots/upload.png)
+![Upload stage](./screenshots/qadam1.png)
 
 **Summary** — Stage 1 extraction, with evidence shown inline.
-![Summary stage](./screenshots/summary.png)
+![Summary stage](./screenshots/qadam2.png)
 
 **Questions** — dynamic profile questions generated from the document's own criteria.
-![Questions stage](./screenshots/questions.png)
+![Questions stage](./screenshots/qadam3.png)
 
 **Plan** — the eligibility verdict and ordered action plan, with evidence.
-![Plan stage](./screenshots/plan.png)
+![Plan stage](./screenshots/qadam4.png)
 
 ## Limitations
 
