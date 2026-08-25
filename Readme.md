@@ -5,7 +5,7 @@
 Qadam is a Pakistan-focused AI application that turns confusing institutional documents — scholarship announcements, university notices, government-service instructions — into personalized, evidence-backed action plans.
 
 🔗 **Live app:** (https://qadam-pk.vercel.app/)
-🎥 **Demo video:** _[add your 2–4 minute demo link here, once recorded]_
+🎥 **Demo video:** (https://drive.google.com/file/d/1q_4FPoE-fKEB25qtS62asl9kCj_j9SaU/view?usp=sharing)
 
 ---
 
