@@ -7,28 +7,25 @@
  * Both exported functions return `unknown` so the API route is responsible
  * for JSON parsing and schema validation (Task 7).
  *
- * A 15-second Promise.race timeout is applied to every call. On timeout the
+ * A 20-second Promise.race timeout is applied to every call. On timeout the
  * promise rejects with { code: "TIMEOUT" } so the route can return HTTP 504.
+ *
+ * SDK: @google/genai (replaces deprecated @google/generative-ai)
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import type { DocumentAnalysis } from "@/lib/types";
 import { buildStage1Prompt, buildStage2Prompt } from "@/lib/prompts";
 
 // ─── Client initialisation ────────────────────────────────────────────────────
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
 
-const model = genAI.getGenerativeModel({
-  model: "gemini-3.6-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-  },
-});
+const MODEL = "gemini-3.6-flash";
 
 // ─── Timeout helper ───────────────────────────────────────────────────────────
 
-const TIMEOUT_MS = 15_000;
+const TIMEOUT_MS = 20_000;
 
 function withTimeout<T>(promise: Promise<T>): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
@@ -41,7 +38,6 @@ function withTimeout<T>(promise: Promise<T>): Promise<T> {
 
 /**
  * Send a document image to Gemini and return the raw parsed JSON response.
- * The prompt is a placeholder — Task 6 replaces it with the full prompt.
  *
  * @param imageBase64 - Raw base64 string (no data-URL prefix)
  * @param mimeType    - One of image/jpeg, image/png, image/webp, image/gif
@@ -52,19 +48,30 @@ export async function analyzeDocument(
 ): Promise<unknown> {
   const prompt = buildStage1Prompt();
 
-  const result = await withTimeout(
-    model.generateContent([
-      { text: prompt },
-      {
-        inlineData: {
-          mimeType,
-          data: imageBase64,
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType,
+                data: imageBase64,
+              },
+            },
+          ],
         },
+      ],
+      config: {
+        responseMimeType: "application/json",
       },
-    ])
+    })
   );
 
-  const text = result.response.text();
+  const text = response.text ?? "";
   if (process.env.NODE_ENV === "development") {
     console.log("[Qadam/analyze] raw Gemini response text:", text.slice(0, 500));
   }
@@ -76,7 +83,6 @@ export async function analyzeDocument(
 /**
  * Send the Stage 1 output and the user's answers to Gemini and return the
  * raw parsed JSON response.
- * The prompt is a placeholder — Task 6 replaces it with the full prompt.
  *
  * @param analysis - Validated DocumentAnalysis from Stage 1
  * @param answers  - User's answers keyed by ProfileQuestion id
@@ -87,9 +93,22 @@ export async function generatePlan(
 ): Promise<unknown> {
   const prompt = buildStage2Prompt(analysis, answers);
 
-  const result = await withTimeout(model.generateContent(prompt));
+  const response = await withTimeout(
+    ai.models.generateContent({
+      model: MODEL,
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }],
+        },
+      ],
+      config: {
+        responseMimeType: "application/json",
+      },
+    })
+  );
 
-  const text = result.response.text();
+  const text = response.text ?? "";
   if (process.env.NODE_ENV === "development") {
     console.log("[Qadam/plan] raw Gemini response text:", text.slice(0, 500));
   }

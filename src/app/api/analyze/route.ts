@@ -11,6 +11,17 @@ const ACCEPTED_MIME_TYPES = new Set([
   "image/gif",
 ]);
 
+/** Returns true when the error looks like a Gemini 503 / UNAVAILABLE response. */
+function isGemini503(err: unknown): boolean {
+  if (typeof err !== "object" || err === null) return false;
+  const e = err as Record<string, unknown>;
+  // SDK may surface the HTTP status directly
+  if (e.status === 503 || e.statusCode === 503) return true;
+  // Or embed it in a message string
+  const msg = String(e.message ?? e.toString()).toUpperCase();
+  return msg.includes("503") || msg.includes("UNAVAILABLE") || msg.includes("OVERLOADED");
+}
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   // ── 1. Parse and validate input ──────────────────────────────────────────
   let body: unknown;
@@ -99,6 +110,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Gemini API error (non-2xx from the upstream API)
     if (process.env.NODE_ENV === "development") {
       console.error("[Qadam/analyze] Gemini API error:", err);
+    }
+    // 503 / UNAVAILABLE — high demand on Gemini's side
+    if (isGemini503(err)) {
+      return NextResponse.json(
+        { error: "Gemini is experiencing high demand right now. Please try again in a moment." },
+        { status: 502 }
+      );
     }
     return NextResponse.json(
       {
